@@ -2,16 +2,16 @@ import moment from 'moment'
 import { FaImage } from 'react-icons/fa'
 import { ToastContainer, toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
+import { parseCookies } from '../../../helpers/index'
 import { useState } from 'react'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
 import Image from 'next/image'
 import Layout from '@/components/Layout'
 import Modal from '@/components/Modal'
-import { API_URL } from '@/config/index'
 import ImageUpload from '@/components/ImageUpload'
+import { API_URL } from '@/config/index'
 import styles from '@/styles/Form.module.css'
-
 
 export default function EditEventPage({ evt, token }) {
   const [values, setValues] = useState({
@@ -46,6 +46,7 @@ export default function EditEventPage({ evt, token }) {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(values),
     })
@@ -68,7 +69,7 @@ export default function EditEventPage({ evt, token }) {
   }
 
   const imageUploaded = async (e) => {
-    const res = await fetch(`${API_URL}/events/${evt.id}`) 
+    const res = await fetch(`${API_URL}/events/${evt.id}`)
     const data = await res.json()
     setImagePreview(data.image.formats.thumbnail.url)
     setShowModal(false)
@@ -166,31 +167,36 @@ export default function EditEventPage({ evt, token }) {
         </div>
       )}
 
-        <div>
+      <div>
         <button
-        onClick={() => setShowModal(true)}
+          onClick={() => setShowModal(true)}
           className='btn-secondary btn-icon'
         >
           <FaImage /> Set Image
         </button>
       </div>
 
-        <Modal show={showModal} onClose={() => setShowModal(false)}>
-            <ImageUpload evtId={evt.id} imageUploaded={imageUploaded} />
-        </Modal>
+      <Modal show={showModal} onClose={() => setShowModal(false)}>
+        <ImageUpload
+          evtId={evt.id}
+          imageUploaded={imageUploaded}
+          token={token}
+        />
+      </Modal>
     </Layout>
   )
 }
 
-export async function getServerSideProps({ params: { id } }) {
-
+export async function getServerSideProps({ params: { id }, req }) {
+  const { token } = parseCookies(req)
 
   const res = await fetch(`${API_URL}/events/${id}`)
   const evt = await res.json()
 
   return {
     props: {
-      evt
+      evt,
+      token,
     },
   }
 }

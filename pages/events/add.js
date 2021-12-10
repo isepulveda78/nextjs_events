@@ -1,3 +1,4 @@
+import {parseCookies} from '../../helpers/index'
 import { ToastContainer, toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import { useState } from 'react'
@@ -35,12 +36,17 @@ export default function AddEventPage({ token }) {
     const res = await fetch(`${API_URL}/events`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
       },
       body: JSON.stringify(values)
     })
 
     if (!res.ok) {
+      if(res.status === 403 || res.status === 401){
+        toast.error('No token included')
+        return
+      }
       toast.error('Something Went Wrong')
     } else {
       const evt = await res.json()
@@ -139,3 +145,12 @@ export default function AddEventPage({ token }) {
   )
 }
 
+export async function getServerSideProps({req}){
+  const {token} = parseCookies(req)
+
+  return {
+    props: {
+      token
+    }
+  }
+}
