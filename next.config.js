@@ -4,5 +4,4 @@ module.exports = {
     domains: ["res.cloudinary.com"],
   },
   ignoreDuringBuilds: true,
-  target: "serverless",
 }
